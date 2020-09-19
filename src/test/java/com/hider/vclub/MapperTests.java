@@ -1,9 +1,7 @@
 package com.hider.vclub;
 
 import com.hider.vclub.dao.DiscussPostMapper;
-import com.hider.vclub.dao.UserMapper;
 import com.hider.vclub.entity.DiscussPost;
-import com.hider.vclub.entity.User;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +24,7 @@ class MapperTests {
 
     @Test
     public void testSelectPosts() {
-        List<DiscussPost> list = discussPostMapper.selectDiscussPosts(0, 0, 10);
+        List<DiscussPost> list = discussPostMapper.selectDiscussPosts(0);
         for (DiscussPost post : list) {
             System.out.println(post);
         }

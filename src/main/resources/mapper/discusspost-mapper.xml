@@ -13,7 +13,6 @@
             and user_id = #{user_id}
         </if>
         order by type desc,create_time desc
-        limit #{offset },#{limit}
     </select>
 
     <select id="selectDiscussPostRows" resultType="int">

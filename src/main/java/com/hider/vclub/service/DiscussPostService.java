@@ -12,8 +12,8 @@ public class DiscussPostService {
     @Autowired
     private DiscussPostMapper discussPostMapper;
 
-    public List<DiscussPost> findDiscussPosts(int userId, int offset, int limit) {
-        return discussPostMapper.selectDiscussPosts(userId, offset, limit);
+    public List<DiscussPost> findDiscussPosts(int userId) {
+        return discussPostMapper.selectDiscussPosts(userId);
     }
 
     public int findDiscussPostRows(int userId) {

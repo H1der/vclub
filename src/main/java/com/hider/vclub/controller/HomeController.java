@@ -1,7 +1,8 @@
 package com.hider.vclub.controller;
 
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import com.hider.vclub.entity.DiscussPost;
-import com.hider.vclub.entity.Page;
 import com.hider.vclub.entity.User;
 import com.hider.vclub.service.DiscussPostService;
 import com.hider.vclub.service.UserService;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 
 
 import java.util.ArrayList;
@@ -26,12 +28,16 @@ public class HomeController {
     private UserService userService;
 
     @RequestMapping(value = "/index", method = RequestMethod.GET)
-    public String getIndexPage(Model model, Page page) {
-        page.setRows(discussPostService.findDiscussPostRows(0));
-        page.setPath("/index");
+    public String getIndexPage(Model model, @RequestParam(required = false, defaultValue = "1", value = "pageNum") Integer pageNum,
+                               @RequestParam(defaultValue = "10", value = "pageSize") Integer pageSize) {
+//        page.setRows(discussPostService.findDiscussPostRows(0));
+//        page.setPath("/index");
+        PageHelper.startPage(pageNum, pageSize);
 
 
-        List<DiscussPost> list = discussPostService.findDiscussPosts(0, page.getOffset(), page.getLimit());
+        List<DiscussPost> list = discussPostService.findDiscussPosts(0);
+        PageInfo<DiscussPost> pageInfo = new PageInfo<DiscussPost>(list, pageSize);
+
         List<Map<String, Object>> discussPosts = new ArrayList<>();
         // 如果list不为空,把user对象也查询出来,然后添加进map里.最后塞进集合里
         if (list != null) {
@@ -43,8 +49,10 @@ public class HomeController {
                 discussPosts.add(map);
             }
         }
+
         System.out.println(discussPosts);
         model.addAttribute("discussPosts", discussPosts);
+        model.addAttribute("pageInfo", pageInfo);
 
         return "/index";
     }

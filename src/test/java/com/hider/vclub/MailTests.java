@@ -1,5 +1,6 @@
 package com.hider.vclub;
 
+import com.hider.vclub.util.DirectMailClient;
 import com.hider.vclub.util.MailClient;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,6 +17,9 @@ import org.thymeleaf.context.Context;
 public class MailTests {
     @Autowired
     private MailClient mailClient;
+
+    @Autowired
+    DirectMailClient directMailClient;
 
     @Autowired
     private TemplateEngine templateEngine;
@@ -35,4 +39,13 @@ public class MailTests {
         mailClient.sendMail("724598894@qq.com", "test", content);
 
     }
+
+    @Test
+    public void testDirectMail() {
+        Context context = new Context();
+        context.setVariable("username", "Hider");
+
+        String content = templateEngine.process("/mail/test", context);
+        System.out.println(content);
+        directMailClient.sendMail("724598894@qq.com", "test", content);    }
 }

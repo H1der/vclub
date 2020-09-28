@@ -1,6 +1,8 @@
 package com.hider.vclub.service;
 
+import com.hider.vclub.dao.LoginTicketMapper;
 import com.hider.vclub.dao.UserMapper;
+import com.hider.vclub.entity.LoginTicket;
 import com.hider.vclub.entity.User;
 import com.hider.vclub.util.MailClient;
 import com.hider.vclub.util.VclubContant;
@@ -21,6 +23,9 @@ import java.util.Random;
 public class UserService implements VclubContant {
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private LoginTicketMapper loginTicketMapper;
 
     @Autowired
     private MailClient mailClient;
@@ -103,6 +108,54 @@ public class UserService implements VclubContant {
         } else {
             return ACTIVATE_FAILURE;
         }
+    }
+
+    public Map<String, Object> login(String username, String password, int expiredSeconds) {
+        HashMap<String, Object> map = new HashMap<>();
+        //空值处理
+        if (StringUtils.isBlank(username)) {
+            map.put("usernameMsg", "账号不能为空!");
+            return map;
+        }
+        if (StringUtils.isBlank(password)) {
+            map.put("passwordMsg", "密码不能为空!");
+            return map;
+        }
+
+        // 验证账号
+        User user = userMapper.selectByName(username);
+        if (user == null) {
+            map.put("usernameMsg", "账号不存在!");
+            return map;
+        }
+        if (user.getStatus() == 0) {
+            map.put("usernameMsg", "账号未激活!");
+            return map;
+        }
+
+        // 验证密码
+        password = VclubUtil.md5(password + user.getSalt());
+        if (!user.getPassword().equals(password)) {
+            map.put("passwordMsg", "密码不正确!");
+            return map;
+        }
+
+        //生成登录凭证
+        LoginTicket loginTicket = new LoginTicket();
+        loginTicket.setUserId(user.getId());
+        loginTicket.setTicket(VclubUtil.generateUUID());
+        loginTicket.setStatus(0);
+        loginTicket.setExpired(new Date(System.currentTimeMillis() + expiredSeconds * 1000));
+        loginTicketMapper.insertLoginTicket(loginTicket);
+
+        map.put("ticket", loginTicket.getTicket());
+
+        return map;
+    }
+
+    // 销毁凭证,退出登录
+    public void logout(String ticket) {
+        loginTicketMapper.updateStatus(ticket, 1);
     }
 
 }

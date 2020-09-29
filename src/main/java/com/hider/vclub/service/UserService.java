@@ -158,4 +158,9 @@ public class UserService implements VclubContant {
         loginTicketMapper.updateStatus(ticket, 1);
     }
 
+    // 查找凭证
+    public LoginTicket findLoginTicket(String ticket) {
+        return loginTicketMapper.selectByTicket(ticket);
+    }
+
 }

@@ -163,4 +163,10 @@ public class UserService implements VclubContant {
         return loginTicketMapper.selectByTicket(ticket);
     }
 
+
+    // 更新头像
+    public int updateHeader(int userId, String headerUrl) {
+        return userMapper.updateHeader(userId, headerUrl);
+    }
+
 }

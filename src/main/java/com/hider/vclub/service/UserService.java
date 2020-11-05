@@ -169,4 +169,49 @@ public class UserService implements VclubContant {
         return userMapper.updateHeader(userId, headerUrl);
     }
 
+    // 更新密码
+    public Map<String, Object> changePassword(int userId, String originalPassword, String password, String confirmPassword) {
+        HashMap<String, Object> map = new HashMap<>();
+        if (userId == 0) {
+            throw new IllegalArgumentException("参数不能为空");
+        }
+        if (StringUtils.isBlank(originalPassword)) {
+            map.put("passwordMsg", "原密码不能为空！");
+            return map;
+        }
+        if (StringUtils.isBlank(password)) {
+            map.put("passwordMsg", "密码不能为空！");
+            return map;
+        }
+        if (StringUtils.isBlank(confirmPassword)) {
+            map.put("passwordMsg", "确认密码不能为空！");
+            return map;
+        }
+        if (!password.equals(confirmPassword)) {
+            map.put("passwordMsg", "两次输入密码不正确！");
+            return map;
+        }
+        // 验证账号
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            map.put("usernameMsg", "账号不存在!");
+            return map;
+        }
+        System.out.println(user);
+
+//         验证密码
+        originalPassword = VclubUtil.md5(originalPassword + user.getSalt());
+        if (!user.getPassword().equals(originalPassword)) {
+            map.put("passwordMsg", "原密码不正确!");
+            return map;
+        }
+
+
+        // 更新密码
+        userMapper.updatePassword(userId, VclubUtil.md5(password + user.getSalt()));
+
+
+        return map;
+    }
+
 }

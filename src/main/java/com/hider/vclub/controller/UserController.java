@@ -1,5 +1,6 @@
 package com.hider.vclub.controller;
 
+import com.hider.vclub.annotation.LoginRequired;
 import com.hider.vclub.entity.User;
 import com.hider.vclub.service.UserService;
 import com.hider.vclub.util.HostHolder;
@@ -45,12 +46,14 @@ public class UserController {
     private HostHolder hostHolder;
 
 
+    @LoginRequired
     @RequestMapping(value = "/setting", method = RequestMethod.GET)
     public String getSettingPage() {
 //        System.out.println(uploadPath);
         return "/site/setting";
     }
 
+    @LoginRequired
     @RequestMapping(value = "/upload", method = RequestMethod.POST)
     public String uploadHeader(MultipartFile headerImage, Model model) {
         if (headerImage == null) {
@@ -108,6 +111,7 @@ public class UserController {
     }
 
     // 登录提交
+    @LoginRequired
     @RequestMapping(value = "/change", method = RequestMethod.POST)
     public String change(String originalPassword, String password, String confirmPassword, Model model) {
         User user = hostHolder.getUser();

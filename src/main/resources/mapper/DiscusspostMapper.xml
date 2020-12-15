@@ -2,13 +2,11 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.hider.vclub.dao.DiscussPostMapper">
     <sql id="selectFields">
-        id
-        ,user_id,title,content,type,status,create_time,comment_count,score
+        id,user_id,title,content,type,status,create_time,comment_count,score
     </sql>
 
     <sql id="insertFields">
-        user_id
-        ,title,content,type,status,create_time,comment_count,score
+        user_id,title,content,type,status,create_time,comment_count,score
     </sql>
 
 
@@ -37,4 +35,11 @@
         insert into discuss_post (<include refid="insertFields"></include>)
         values (#{userId},#{title},#{content},#{type},#{status},#{createTime},#{commentCount},#{score})
     </insert>
+
+    <select id="selectDiscussPostById" resultType="DiscussPost">
+        select
+        <include refid="selectFields"></include>
+        from discuss_post
+        where id = ${id}
+    </select>
 </mapper>

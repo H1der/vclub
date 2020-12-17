@@ -19,4 +19,7 @@ public interface DiscussPostMapper {
 
     // 根据 id 查询帖子详情
     DiscussPost selectDiscussPostById(int id);
+
+    // 更新帖子回复数
+    int updateCommentCount(int id, int commentCount);
 }

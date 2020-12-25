@@ -214,4 +214,9 @@ public class UserService implements VclubContant {
         return map;
     }
 
+    // 通过用户名查找用户
+    public User findUserByName(String username) {
+        return userMapper.selectByName(username);
+    }
+
 }

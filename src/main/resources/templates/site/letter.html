@@ -140,7 +140,9 @@
 								<a th:href="@{|/letter/detail/${map.conversation.conversationId}|}"
 								   th:text="${map.conversation.content}">米粉车, 你来吧!</a>
 								<ul class="d-inline font-size-12 float-right">
-									<li class="d-inline ml-2"><a href="#" class="text-primary">共<i
+									<li class="d-inline ml-2"><a
+											th:href="@{|/letter/detail/${map.conversation.conversationId}|}"
+											class="text-primary">共<i
 											th:text="${map.letterCount}">5</i>条会话</a></li>
 								</ul>
 							</div>

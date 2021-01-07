@@ -5,7 +5,9 @@ import com.github.pagehelper.PageInfo;
 import com.hider.vclub.entity.DiscussPost;
 import com.hider.vclub.entity.User;
 import com.hider.vclub.service.DiscussPostService;
+import com.hider.vclub.service.LikeService;
 import com.hider.vclub.service.UserService;
+import com.hider.vclub.util.VclubContant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,12 +21,15 @@ import java.util.List;
 import java.util.Map;
 
 @Controller
-public class HomeController {
+public class HomeController implements VclubContant {
     @Autowired
     private DiscussPostService discussPostService;
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private LikeService likeService;
 
     @RequestMapping(value = "/index", method = RequestMethod.GET)
     public String getIndexPage(Model model, @RequestParam(required = false, defaultValue = "1", value = "pageNum") Integer pageNum,
@@ -45,6 +50,8 @@ public class HomeController {
                 map.put("post", post);
                 User user = userService.findUserById(post.getUserId());
                 map.put("user", user);
+                long likeCount = likeService.findEntityLikeCount(ENTITY_TYPE_POST, post.getId());
+                map.put("likeCount", likeCount);
                 discussPosts.add(map);
             }
         }

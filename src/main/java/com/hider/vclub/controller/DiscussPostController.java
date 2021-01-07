@@ -8,6 +8,7 @@ import com.hider.vclub.entity.DiscussPost;
 import com.hider.vclub.entity.User;
 import com.hider.vclub.service.CommentService;
 import com.hider.vclub.service.DiscussPostService;
+import com.hider.vclub.service.LikeService;
 import com.hider.vclub.service.UserService;
 import com.hider.vclub.util.HostHolder;
 import com.hider.vclub.util.VclubContant;
@@ -33,6 +34,9 @@ public class DiscussPostController implements VclubContant {
 
     @Autowired
     private CommentService commentService;
+
+    @Autowired
+    private LikeService likeService;
 
 
     // 添加帖子
@@ -67,6 +71,14 @@ public class DiscussPostController implements VclubContant {
         User user = userService.findUserById(post.getUserId());
         model.addAttribute("user", user);
 
+        // 点赞数量
+        long likeCount = likeService.findEntityLikeCount(ENTITY_TYPE_POST, discussPostId);
+        model.addAttribute("likeCount", likeCount);
+
+        // 点赞状态
+        long likeStatus = hostHolder.getUser() == null ? 0 : likeService.findEntityLikeStatus(hostHolder.getUser().getId(), ENTITY_TYPE_POST, discussPostId);
+        model.addAttribute("likeStatus", likeStatus);
+
         // 评论的分页信息
         PageHelper.startPage(pageNum, pageSize);
         // 评论列表
@@ -83,7 +95,13 @@ public class DiscussPostController implements VclubContant {
                 commentVo.put("comment", comment);
                 // 作者
                 commentVo.put("user", userService.findUserById(comment.getUserId()));
+                // 点赞数量
+                likeCount = likeService.findEntityLikeCount(ENTITY_TYPE_COMMENT, comment.getId());
+                commentVo.put("likeCount", likeCount);
 
+                // 点赞状态
+                likeStatus = hostHolder.getUser() == null ? 0 : likeService.findEntityLikeStatus(hostHolder.getUser().getId(), ENTITY_TYPE_COMMENT, comment.getId());
+                commentVo.put("likeStatus", likeStatus);
                 // 回复列表
                 List<Comment> replyList = commentService.findCommentsByEntity(ENTITY_TYPE_COMMENT, comment.getId());
                 // 回复VO列表
@@ -94,6 +112,15 @@ public class DiscussPostController implements VclubContant {
                     replyVo.put("reply", reply);
                     // 作者
                     replyVo.put("user", userService.findUserById(reply.getUserId()));
+
+                    // 点赞数量
+                    likeCount = likeService.findEntityLikeCount(ENTITY_TYPE_COMMENT, reply.getId());
+                    replyVo.put("likeCount", likeCount);
+
+                    // 点赞状态
+                    likeStatus = hostHolder.getUser() == null ? 0 : likeService.findEntityLikeStatus(hostHolder.getUser().getId(), ENTITY_TYPE_COMMENT, reply.getId());
+                    replyVo.put("likeStatus", likeStatus);
+
                     // 回复目标
                     User target = reply.getTargetId() == 0 ? null : userService.findUserById(reply.getTargetId());
                     replyVo.put("target", target);

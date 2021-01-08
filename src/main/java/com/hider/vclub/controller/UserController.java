@@ -2,6 +2,7 @@ package com.hider.vclub.controller;
 
 import com.hider.vclub.annotation.LoginRequired;
 import com.hider.vclub.entity.User;
+import com.hider.vclub.service.LikeService;
 import com.hider.vclub.service.UserService;
 import com.hider.vclub.util.HostHolder;
 import com.hider.vclub.util.VclubUtil;
@@ -44,6 +45,9 @@ public class UserController {
 
     @Autowired
     private HostHolder hostHolder;
+
+    @Autowired
+    private LikeService likeService;
 
 
     @LoginRequired
@@ -127,5 +131,22 @@ public class UserController {
             return "/site/setting";
         }
 
+    }
+
+    // 个人主页
+    @RequestMapping(value = "/profile/{userId}", method = RequestMethod.GET)
+    public String getProfilePage(@PathVariable("userId") int userId, Model model) {
+        User user = userService.findUserById(userId);
+        if (user == null) {
+            throw new RuntimeException("该用户不存在");
+        }
+
+        // 用户
+        model.addAttribute("user", user);
+
+        // 点赞数量
+        int likeCount = likeService.findUserLikeCount(userId);
+        model.addAttribute("likeCount", likeCount);
+        return "/site/profile";
     }
 }

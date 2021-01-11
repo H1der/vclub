@@ -2,9 +2,11 @@ package com.hider.vclub.controller;
 
 import com.hider.vclub.annotation.LoginRequired;
 import com.hider.vclub.entity.User;
+import com.hider.vclub.service.FollowService;
 import com.hider.vclub.service.LikeService;
 import com.hider.vclub.service.UserService;
 import com.hider.vclub.util.HostHolder;
+import com.hider.vclub.util.VclubContant;
 import com.hider.vclub.util.VclubUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -27,7 +29,7 @@ import java.util.Map;
 
 @Controller
 @RequestMapping("/user")
-public class UserController {
+public class UserController implements VclubContant {
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
@@ -48,6 +50,9 @@ public class UserController {
 
     @Autowired
     private LikeService likeService;
+
+    @Autowired
+    private FollowService followService;
 
 
     @LoginRequired
@@ -147,6 +152,22 @@ public class UserController {
         // 点赞数量
         int likeCount = likeService.findUserLikeCount(userId);
         model.addAttribute("likeCount", likeCount);
+
+        // 关注数量
+        long followedCount = followService.findFollowedCount(userId, ENTITY_TYPE_USER);
+        model.addAttribute("followedCount", followedCount);
+
+        // 粉丝数量
+        long followerCount = followService.findFollowerCount(ENTITY_TYPE_USER, userId);
+        model.addAttribute("followerCount", followerCount);
+
+        // 是否已关注
+        boolean hasFollow = false;
+        if (hostHolder.getUser() != null) {
+            hasFollow = followService.hasFollowed(hostHolder.getUser().getId(), ENTITY_TYPE_USER, userId);
+        }
+        model.addAttribute("hasFollow", hasFollow);
+
         return "/site/profile";
     }
 }

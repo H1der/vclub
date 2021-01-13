@@ -19,6 +19,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class UserService implements VclubContant {
@@ -44,8 +45,14 @@ public class UserService implements VclubContant {
     private RedisTemplate redisTemplate;
 
     public User findUserById(int id) {
-        return userMapper.selectById(id);
+//        return userMapper.selectById(id);
+        User user = getCache(id);
+        if (user == null) {
+            user = initCache(id);
+        }
+        return user;
     }
+
 
     public Map<String, Object> register(User user) {
         HashMap<String, Object> map = new HashMap<>();
@@ -108,6 +115,7 @@ public class UserService implements VclubContant {
             return ACTIVATE_REPEAT;
         } else if (user.getActivationCode().equals(code)) {
             userMapper.updateStatus(userId, 1);
+            clearCache(userId);
             return ACTIVATE_SUCCESS;
         } else {
             return ACTIVATE_FAILURE;
@@ -181,7 +189,10 @@ public class UserService implements VclubContant {
 
     // 更新头像
     public int updateHeader(int userId, String headerUrl) {
-        return userMapper.updateHeader(userId, headerUrl);
+        int rows = userMapper.updateHeader(userId, headerUrl);
+        clearCache(userId);
+        return rows;
+//        return userMapper.updateHeader(userId, headerUrl);
     }
 
     // 更新密码
@@ -212,7 +223,7 @@ public class UserService implements VclubContant {
             map.put("usernameMsg", "账号不存在!");
             return map;
         }
-        System.out.println(user);
+//        System.out.println(user);
 
 //         验证密码
         originalPassword = VclubUtil.md5(originalPassword + user.getSalt());
@@ -224,6 +235,7 @@ public class UserService implements VclubContant {
 
         // 更新密码
         userMapper.updatePassword(userId, VclubUtil.md5(password + user.getSalt()));
+        clearCache(userId);
 
 
         return map;
@@ -232,6 +244,27 @@ public class UserService implements VclubContant {
     // 通过用户名查找用户
     public User findUserByName(String username) {
         return userMapper.selectByName(username);
+    }
+
+
+    //1.优先从缓存中取值
+    private User getCache(int userId) {
+        String redisKey = RedisKeyUtil.getUserKey(userId);
+        return (User) redisTemplate.opsForValue().get(redisKey);
+    }
+
+    //2.取不到时初始化缓存数据
+    private User initCache(int userId) {
+        User user = userMapper.selectById(userId);
+        String redisKey = RedisKeyUtil.getUserKey(userId);
+        redisTemplate.opsForValue().set(redisKey, user, 3600, TimeUnit.SECONDS);
+        return user;
+    }
+
+    //3.数据变更时清楚缓存数据
+    private void clearCache(int userId) {
+        String redisKey = RedisKeyUtil.getUserKey(userId);
+        redisTemplate.delete(redisKey);
     }
 
 }

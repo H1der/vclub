@@ -1,15 +1,16 @@
 package com.hider.vclub.service;
 
-import com.hider.vclub.dao.LoginTicketMapper;
 import com.hider.vclub.dao.UserMapper;
 import com.hider.vclub.entity.LoginTicket;
 import com.hider.vclub.entity.User;
 import com.hider.vclub.util.MailClient;
+import com.hider.vclub.util.RedisKeyUtil;
 import com.hider.vclub.util.VclubContant;
 import com.hider.vclub.util.VclubUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -24,8 +25,8 @@ public class UserService implements VclubContant {
     @Autowired
     private UserMapper userMapper;
 
-    @Autowired
-    private LoginTicketMapper loginTicketMapper;
+//    @Autowired
+//    private LoginTicketMapper loginTicketMapper;
 
     @Autowired
     private MailClient mailClient;
@@ -38,6 +39,9 @@ public class UserService implements VclubContant {
 
     @Value("${server.servlet.context-path}")
     private String contextPath;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     public User findUserById(int id) {
         return userMapper.selectById(id);
@@ -146,7 +150,10 @@ public class UserService implements VclubContant {
         loginTicket.setTicket(VclubUtil.generateUUID());
         loginTicket.setStatus(0);
         loginTicket.setExpired(new Date(System.currentTimeMillis() + expiredSeconds * 1000));
-        loginTicketMapper.insertLoginTicket(loginTicket);
+//        loginTicketMapper.insertLoginTicket(loginTicket);
+
+        String redisKey = RedisKeyUtil.getTicketKey(loginTicket.getTicket());
+        redisTemplate.opsForValue().set(redisKey, loginTicket);
 
         map.put("ticket", loginTicket.getTicket());
 
@@ -155,12 +162,20 @@ public class UserService implements VclubContant {
 
     // 销毁凭证,退出登录
     public void logout(String ticket) {
-        loginTicketMapper.updateStatus(ticket, 1);
+//        loginTicketMapper.updateStatus(ticket, 1);
+        String redisKey = RedisKeyUtil.getTicketKey(ticket);
+        // 先吧凭证取出来,再进行销毁,最后写入redis
+        LoginTicket loginTicket = (LoginTicket) redisTemplate.opsForValue().get(redisKey);
+        loginTicket.setStatus(1);
+        redisTemplate.opsForValue().set(redisKey, loginTicket);
+
     }
 
     // 查找凭证
     public LoginTicket findLoginTicket(String ticket) {
-        return loginTicketMapper.selectByTicket(ticket);
+//        return loginTicketMapper.selectByTicket(ticket);
+        String redisKey = RedisKeyUtil.getTicketKey(ticket);
+        return (LoginTicket) redisTemplate.opsForValue().get(redisKey);
     }
 
 

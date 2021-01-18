@@ -1,6 +1,8 @@
 package com.hider.vclub.controller;
 
+import com.hider.vclub.entity.Event;
 import com.hider.vclub.entity.User;
+import com.hider.vclub.event.EventProducer;
 import com.hider.vclub.service.FollowService;
 import com.hider.vclub.service.UserService;
 import com.hider.vclub.util.HostHolder;
@@ -29,12 +31,22 @@ public class FollowController implements VclubContant {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private EventProducer eventProducer;
+
     // 关注
     @RequestMapping(value = "/follow", method = RequestMethod.POST)
     @ResponseBody
     public String follow(int entityType, int entityId) {
         User user = hostHolder.getUser();
         followService.follow(user.getId(), entityType, entityId);
+
+        Event event = new Event().setTopic(TOPIC_FOLLOW)
+                .setUserId(hostHolder.getUser().getId())
+                .setEntityType(entityType)
+                .setEntityId(entityId)
+                .setEntityUserId(entityId);
+        eventProducer.fireEvent(event);
 
         return VclubUtil.getJSONString(200, "已关注");
     }

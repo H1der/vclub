@@ -133,12 +133,13 @@ public class MessageController implements VclubContant {
 
         if (letterList != null) {
             for (Message message : letterList) {
+                System.out.println(hostHolder.getUser().getId());
                 // 如果当前用户等于接收者
                 if (hostHolder.getUser().getId() == message.getToId() && message.getStatus() == 0)
                     ids.add(message.getId());
             }
         }
-
+        System.out.println(ids);
 
         return ids;
     }
@@ -267,5 +268,42 @@ public class MessageController implements VclubContant {
 
         return "/site/notice";
 
+    }
+
+    // 主题下的通知
+    @RequestMapping(value = "/notice/detail/{topic}", method = RequestMethod.GET)
+    public String getNoticeDetail(@PathVariable("topic") String topic, Model model) {
+        User user = hostHolder.getUser();
+
+        List<Message> noticeList = messageService.findNotices(user.getId(), topic);
+        List<Map<String, Object>> noticeVoList = new ArrayList<>();
+        if (noticeList != null) {
+            for (Message notice : noticeList) {
+                Map<String, Object> map = new HashMap<>();
+                // 通知
+                map.put("notice", notice);
+
+                // 内容
+                String content = HtmlUtils.htmlUnescape(notice.getContent());
+                Map<String, Object> data = JSONObject.parseObject(content, HashMap.class);
+                map.put("user", userService.findUserById((Integer) data.get("userId")));
+                map.put("entityType", data.get("entityType"));
+                map.put("entityId", data.get("entityId"));
+                map.put("postId", data.get("postId"));
+                // 通知作者
+                map.put("fromUser", userService.findUserById(notice.getFromId()));
+
+                noticeVoList.add(map);
+
+            }
+        }
+        model.addAttribute("notices", noticeVoList);
+
+        // 设置已读
+        List<Integer> ids = getLetterIds(noticeList);
+        if (!ids.isEmpty()) {
+            messageService.readMessage(ids);
+        }
+        return "/site/notice-detail";
     }
 }

@@ -37,4 +37,7 @@ public interface MessageMapper {
     // 查询未读的通知的数量
     int selectNoticeUnreadCount(int userId, String topic);
 
+    // 查询某个主题缩包含的通知列表
+    List<Message> selectNotices(int userId, String topic);
+
 }
